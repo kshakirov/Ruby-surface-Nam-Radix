@@ -1,0 +1,7 @@
+$ENTRY Go {
+  = <Prout <Swap ('lambda') ('synthesis')>>;
+}
+
+Swap {
+  (e.Left) (e.Right) = (e.Right) (e.Left);
+}

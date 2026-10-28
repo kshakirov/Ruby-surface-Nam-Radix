@@ -1,0 +1,22 @@
+.DS_Store
+
+# Editor files
+*~
+\#*\#
+.#*
+
+# Build output
+build/
+dist/
+*.o
+*.so
+*.dylib
+
+# Refal generated files
+rewriting/refal/*.rasl
+rewriting/refal/*.cpp
+rewriting/refal/ruby-free-functions
+rewriting/refal/ruby-text-class
+rewriting/refal/ruby-to-spatial
+rewriting/refal/skipWs
+rewriting/refal/swap

@@ -1,0 +1,38 @@
+/* ===================================================================== */
+/*   mini-Refal: Обработка свободных функций и вызовов                   */
+/* ===================================================================== */
+
+$ENTRY Go {
+    = <Prout <NormalizeRuby
+        (def sum (x y)
+            (CALL_DIRECT plus (x y)))>>;
+}
+
+NormalizeRuby {
+    /* 1. Свободная функция на верхнем уровне (Top-Level Function) */
+    (def s.FuncName (e.Args) e.Body) e.Rest
+        = (GLOBAL_FUNC s.FuncName
+            (ARGS <DeBruijnIndex e.Args>)
+            (BODY <NormalizeRuby e.Body>))
+          <NormalizeRuby e.Rest>;
+
+    /* 2. Прямой вызов свободной функции без receiver */
+    (CALL_DIRECT s.FuncName (e.Args)) e.Rest
+        = (DIRECT_JUMP (TARGET s.FuncName)
+            (ARGS <NormalizeRuby e.Args>))
+          <NormalizeRuby e.Rest>;
+
+    t.Atom e.Rest = t.Atom <NormalizeRuby e.Rest>;
+    = ;
+}
+
+DeBruijnIndex {
+    e.Args = <BuildIndices e.Args 0>;
+}
+
+BuildIndices {
+    s.Arg e.Rest s.Depth
+        = (VAR s.Arg INDEX s.Depth)
+          <BuildIndices e.Rest <Add s.Depth 1>>;
+    s.Depth = ;
+}

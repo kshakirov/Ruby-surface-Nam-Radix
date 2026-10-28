@@ -1,0 +1,50 @@
+/* ===================================================================== */
+/*   mini-Refal: Ruby Surface -> Spatial Graph Spec                      */
+/* ===================================================================== */
+
+/* Главная функция нормализации */
+$ENTRY Go {
+    = <Prout <NormalizeRuby
+        (class Calculator
+            (def add (x y)
+                (CALL self plus (x y))))>>;
+}
+
+$ENTRY NormalizeRuby {
+    /* 1. Нормализация определения класса: class C; e.Body; end */
+    (class s.ClassName e.Body) e.Rest
+        = (SCOPE Class s.ClassName <NormalizeRuby e.Body>)
+          <NormalizeRuby e.Rest>;
+
+    /* 2. Нормализация метода: def m(a, b); e.Body; end */
+    (def s.MethodName (e.Args) e.Body) e.Rest
+        = (FUNC s.MethodName (ARGS <DeBruijnIndex e.Args>)
+            (BODY <NormalizeRuby e.Body>))
+          <NormalizeRuby e.Rest>;
+
+    /* 3. Нормализация вызова метода c объектом: obj.method(args) */
+    (CALL e.Obj s.MethodName (e.Args)) e.Rest
+        = (SPATIAL_LINK (TARGET e.Obj) (FUNC s.MethodName) (ARGS <NormalizeRuby e.Args>))
+          <NormalizeRuby e.Rest>;
+
+    /* 4. Встретили статически неразрешимый фрагмент (например, send / dynamic eval) */
+    (DYNAMIC_SEND e.DynamicExpr) e.Rest
+        = (HOLE (EXPR <NormalizeRuby e.DynamicExpr>))
+          <NormalizeRuby e.Rest>;
+
+    /* Базовый случай: атомы и пустые выражения pass-through */
+    t.Atom e.Rest = t.Atom <NormalizeRuby e.Rest>;
+    /* Пустое выражение */
+    = ;
+}
+
+/* Перевод аргументов в индексы де Брёйна */
+$ENTRY DeBruijnIndex {
+    /* Автоматическая замена имён переменных на абсолютные глубины */
+    e.Args = <BuildIndices e.Args 0>;
+}
+
+BuildIndices {
+    s.Arg e.Rest s.Depth = (VAR s.Arg INDEX s.Depth) <BuildIndices e.Rest <Add s.Depth 1>>;
+    s.Depth = ;
+}

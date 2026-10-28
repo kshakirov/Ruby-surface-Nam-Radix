@@ -1,0 +1,9 @@
+/* Minimal honest experiment: Ruby source characters -> class tree. */
+
+$ENTRY Go {
+    = <Prout <ParseClass 'class Something end'>>;
+}
+
+ParseClass {
+    'class ' e.Name ' end' = (class <Implode e.Name>);
+}
